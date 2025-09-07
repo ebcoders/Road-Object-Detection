@@ -1,49 +1,81 @@
-Road Obstacle Detection – Pruning Deformable DETR
+# Pruning on Deformable DETR
 
-Authors: Ebin Royce Vadakkemulanjanal, Rishab Bohra, Shashank Shashidhar, Suhas Ungarala, Muhammed Shahbas V S
+**Authors:** Rishab Bohra, Shashank Shashidhar, Ebin Royce, Suhas Ungarala, Muhammed Shahbas V S
 
-This project explores pruning techniques on Deformable DETR to reduce model size and inference latency while maintaining high detection accuracy for real-time obstacle detection in autonomous driving.
+## Introduction
 
-Overview
+State-of-the-art object detectors such as Deformable DETR achieve high accuracy but are computationally expensive and memory-heavy. This limits deployment on edge devices and real-time systems.
 
-Deformable DETR achieves high accuracy but is computationally heavy. We applied:
+This project explores pruning techniques (structured filter pruning and unstructured weight pruning) to compress Deformable DETR while analyzing the trade-off between accuracy, speed, and model size.
 
-Structured Filter Pruning – removes less important convolutional filters
+## Background
 
-Unstructured Weight Pruning – removes low-magnitude weights
+### Deformable DETR
 
-to compress the model and improve deployment feasibility.
+- Faster convergence vs. DETR
+- Better handling of small objects  
+- Key innovation: Multi-Scale Deformable Attention
+- Architecture: ResNet-50 + FPN backbone, Transformer Encoder/Decoder, prediction heads
 
-Dataset
+### Pruning Approaches
 
-KITTI Object Detection Dataset
+1. **Structured Filter Pruning** – removes filters based on L1-norm
+2. **Unstructured Weight Pruning** – removes individual low-magnitude weights
 
-Classes: Cars, Pedestrians, Cyclists
+## Methodology
 
-Preprocessed .txt annotations converted to COCO JSON format for MMDetection compatibility.
+**Dataset:** KITTI Object Detection (Cars, Pedestrians, Cyclists)
 
-Methodology
+**Preprocessing:** Converted KITTI `.txt` annotations → COCO JSON format
 
-Baseline: Deformable DETR with ResNet-50 + FPN backbone
+**Baseline Model:** Deformable DETR (ResNet-50 backbone) trained in MMDetection
 
-Experiments:
+**Pruning Experiments:**
+- Filter pruning (10–50%)
+- Weight pruning (10–90%)
 
-Filter pruning: 10–50% filters
+## Evaluation Metrics
 
-Weight pruning: 10–90% sparsity
+**Accuracy:** mAP, mAP50, per-class AP
 
-Evaluation Metrics: mAP, mAP50, per-class AP, inference latency, FLOPs, model size
+**Efficiency:** Inference latency (CPU/GPU), FLOPs
 
-Key Results
+**Model Size:** Parameters, checkpoint size, compression ratio
 
-Filter Pruning: ~32.5% parameter reduction, ~23.7% FLOPs savings, minor accuracy loss, inference latency improved (~205 ms → ~196 ms)
+## Key Results
 
-Weight Pruning: ~30–40% parameter reduction (sparsity), mainly reduces storage, no significant speedup
+### Baseline
+- mAP ≈ 0.117
+- Latency ~205 ms
+- ~205 GFLOPs
 
-Repository Contents
+### Structured Filter Pruning
+- Severe accuracy collapse (>20%)
+- ~24% FLOP reduction at 50% pruning
+- Minor runtime gain
 
-torch_filter_pruning_final.ipynb → Filter pruning experiments
+### Unstructured Weight Pruning
+- Better robustness at 30–40% sparsity
+- Sharp collapse beyond 50–70%
+- Reduced storage but no speedup
 
-training+unstructured_weight_pruning.ipynb → Weight pruning experiments
+## Comparative Analysis
 
-README.md → Project summary
+**Filter Pruning** → Least robust, fast accuracy collapse
+
+**Weight Pruning** → Good storage reduction, no latency gain
+
+## Conclusion
+
+Pruning Deformable DETR is challenging due to its sensitivity.
+
+- **Structured Filter Pruning** → Poor trade-off
+- **Unstructured Weight Pruning** → Storage benefit only
+
+The analysis reveals that while both pruning methods achieve compression, each comes with distinct limitations. Filter pruning shows rapid accuracy degradation, while weight pruning provides storage benefits without inference speedup.
+
+## Repository Contents
+
+- `torch_filter_pruning_final.ipynb` → Structured Filter Pruning experiments
+- `training+unstructured_weight_pruning.ipynb` → Unstructured Weight Pruning experiments  
+- `README.md` → Project summary (this file)
